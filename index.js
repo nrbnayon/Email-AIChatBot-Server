@@ -59,7 +59,7 @@ app.use((req, res, next) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello from how can i help you!");
+  res.send("Hello developer! How can I help you?");
 });
 
 // Routes
