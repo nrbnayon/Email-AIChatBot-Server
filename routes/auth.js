@@ -6,6 +6,11 @@ import dotenv from "dotenv";
 dotenv.config();
 const router = express.Router();
 
+const getFrontendUrl = () => {
+  return process.env.NODE_ENV === "production"
+    ? process.env.FRONTEND_LIVE_URL
+    : process.env.FRONTEND_BASE_URL;
+};
 // Google OAuth login route
 router.get(
   "/google",
@@ -31,7 +36,7 @@ router.get(
     next();
   },
   passport.authenticate("google", {
-    failureRedirect: "https://email-aichatbot.netlify.app/login",
+    failureRedirect: `${getFrontendUrl}/login`,
     session: true,
   }),
   (req, res) => {
@@ -46,9 +51,7 @@ router.get(
     );
 
     // Redirect to frontend with token
-    res.redirect(
-      `https://email-aichatbot.netlify.app/auth-callback?token=${token}`
-    );
+    res.redirect(`${getFrontendUrl}/auth-callback?token=${token}`);
   }
 );
 
@@ -73,7 +76,7 @@ router.get(
     next();
   },
   passport.authenticate("microsoft", {
-    failureRedirect: "https://email-aichatbot.netlify.app/login",
+    failureRedirect: `${getFrontendUrl}/login`,
     session: true,
   }),
   (req, res) => {
@@ -88,34 +91,12 @@ router.get(
     );
 
     // Redirect to frontend with token
-    res.redirect(
-      `https://email-aichatbot.netlify.app/auth-callback?token=${token}`
-    );
+    res.redirect(`${getFrontendUrl}/auth-callback?token=${token}`);
   }
 );
 
-const authenticateJWT = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (authHeader) {
-    const token = authHeader.split(" ")[1];
-
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      if (err) {
-        console.error("JWT verification error:", err);
-        return res.sendStatus(403);
-      }
-
-      req.user = user;
-      next();
-    });
-  } else {
-    res.sendStatus(401);
-  }
-};
-
 // Get current user
-router.get("/me", authenticateJWT, (req, res) => {
+router.get("/me", (req, res) => {
   console.log("Auth check - isAuthenticated:", req.isAuthenticated());
   console.log("Auth check - user:", req.user ? req.user.email : "No user");
 

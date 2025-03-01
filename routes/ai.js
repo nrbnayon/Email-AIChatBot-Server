@@ -12,12 +12,42 @@ const groq = new Groq({
 
 // Available AI models
 const AVAILABLE_MODELS = [
-  { id: "llama3-70b-8192", name: "Llama 3 70B", developer: "Meta", contextWindow: "8K tokens" },
-  { id: "llama3-8b-8192", name: "Llama 3 8B", developer: "Meta", contextWindow: "8K tokens" },
-  { id: "llama-3.1-8b-instant", name: "Llama 3.1 8B Instant", developer: "Meta", contextWindow: "128K tokens" },
-  { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B Versatile", developer: "Meta", contextWindow: "128K tokens" },
-  { id: "mixtral-8x7b-32768", name: "Mixtral 8x7B", developer: "Mistral", contextWindow: "32K tokens" },
-  { id: "gemma2-9b-it", name: "Gemma 2 9B", developer: "Google", contextWindow: "8K tokens" }
+  {
+    id: "llama3-70b-8192",
+    name: "Llama 3 70B",
+    developer: "Meta",
+    contextWindow: "8K tokens",
+  },
+  {
+    id: "llama3-8b-8192",
+    name: "Llama 3 8B",
+    developer: "Meta",
+    contextWindow: "8K tokens",
+  },
+  {
+    id: "llama-3.1-8b-instant",
+    name: "Llama 3.1 8B Instant",
+    developer: "Meta",
+    contextWindow: "128K tokens",
+  },
+  {
+    id: "llama-3.3-70b-versatile",
+    name: "Llama 3.3 70B Versatile",
+    developer: "Meta",
+    contextWindow: "128K tokens",
+  },
+  // {
+  //   id: "mixtral-8x7b-32768",
+  //   name: "Mixtral 8x7B",
+  //   developer: "Mistral",
+  //   contextWindow: "32K tokens",
+  // },
+  // {
+  //   id: "gemma2-9b-it",
+  //   name: "Gemma 2 9B",
+  //   developer: "Google",
+  //   contextWindow: "8K tokens",
+  // },
 ];
 
 // Middleware to check if user is authenticated
@@ -32,7 +62,7 @@ const isAuthenticated = (req, res, next) => {
 router.get("/models", isAuthenticated, (req, res) => {
   return res.status(200).json({
     success: true,
-    models: AVAILABLE_MODELS
+    models: AVAILABLE_MODELS,
   });
 });
 
@@ -49,7 +79,7 @@ router.post("/query", isAuthenticated, async (req, res) => {
     }
 
     // Check if model is valid
-    if (!AVAILABLE_MODELS.some(m => m.id === model)) {
+    if (!AVAILABLE_MODELS.some((m) => m.id === model)) {
       return res.status(400).json({
         success: false,
         message: "Invalid model selected",
@@ -65,7 +95,9 @@ router.post("/query", isAuthenticated, async (req, res) => {
     }
 
     // Allow empty email arrays - the user might have no emails but still want to ask questions
-    console.log(`Processing AI query: "${query}" with ${emails.length} emails using model: ${model}`);
+    console.log(
+      `Processing AI query: "${query}" with ${emails.length} emails using model: ${model}`
+    );
 
     // Prepare email data for AI processing - only include essential information and limit size
     const emailsData = emails.map((email) => ({

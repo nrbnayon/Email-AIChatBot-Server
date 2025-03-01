@@ -1,4 +1,4 @@
-// server\index.js
+// index.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -41,7 +41,7 @@ app.use(passport.session());
 app.use(
   cors({
     origin: ["http://localhost:5173", "https://email-aichatbot.netlify.app"],
-    credentials: true, 
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     exposedHeaders: ["Authorization"],

@@ -85,7 +85,11 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       try {
         console.log("Microsoft OAuth callback received");
-        console.log("Profile:", profile.displayName, profile._json.mail || profile._json.userPrincipalName);
+        console.log(
+          "Profile:",
+          profile.displayName,
+          profile._json.mail || profile._json.userPrincipalName
+        );
         console.log("Callback URL:", process.env.MICROSOFT_REDIRECT_URI);
 
         // Get email from profile
@@ -100,7 +104,7 @@ passport.use(
           user.microsoftId = profile.id;
           user.microsoftAccessToken = accessToken;
           user.microsoftRefreshToken = refreshToken;
-          user.tokenExpiry = new Date(Date.now() + 3600 * 1000); // Token expires in 1 hour
+          user.tokenExpiry = new Date(Date.now() + 24 * 3600 * 1000); // Token expires in 1 day
           await user.save();
         } else {
           console.log("Creating new user");

@@ -1,28 +1,28 @@
-// server\models\User.js
-import mongoose from 'mongoose';
+// models\User.js
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   authProvider: {
     type: String,
-    enum: ['google', 'microsoft'],
-    required: true
+    enum: ["google", "microsoft"],
+    required: true,
   },
   googleId: {
     type: String,
-    sparse: true
+    sparse: true,
   },
   microsoftId: {
     type: String,
-    sparse: true
+    sparse: true,
   },
   googleAccessToken: String,
   googleRefreshToken: String,
@@ -31,10 +31,10 @@ const userSchema = new mongoose.Schema({
   tokenExpiry: Date,
   createdAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
 export default User;

@@ -1,3 +1,4 @@
+// routes\emails.js
 import express from "express";
 import { google } from "googleapis";
 import dotenv from "dotenv";
@@ -232,14 +233,16 @@ router.get("/outlook", isAuthenticated, async (req, res) => {
     const response = await fetch(endpoint, {
       headers: {
         Authorization: `Bearer ${req.user.microsoftAccessToken}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     if (!response.ok) {
       const errorData = await response.json();
       console.error("Microsoft Graph API error:", errorData);
-      throw new Error(`Microsoft API error: ${errorData.error?.message || 'Unknown error'}`);
+      throw new Error(
+        `Microsoft API error: ${errorData.error?.message || "Unknown error"}`
+      );
     }
 
     const data = await response.json();
@@ -253,17 +256,21 @@ router.get("/outlook", isAuthenticated, async (req, res) => {
     }
 
     // Process emails
-    const emails = data.value.map(message => {
+    const emails = data.value.map((message) => {
       try {
         // Extract sender information
-        const sender = message.from?.emailAddress?.name 
+        const sender = message.from?.emailAddress?.name
           ? `${message.from.emailAddress.name} <${message.from.emailAddress.address}>`
           : message.from?.emailAddress?.address || "Unknown sender";
 
         // Extract recipient information
-        const recipients = message.toRecipients?.map(recipient => 
-          recipient.emailAddress?.address || "Unknown recipient"
-        ).join(", ") || "Unknown recipient";
+        const recipients =
+          message.toRecipients
+            ?.map(
+              (recipient) =>
+                recipient.emailAddress?.address || "Unknown recipient"
+            )
+            .join(", ") || "Unknown recipient";
 
         // Extract body content (prefer HTML content if available)
         const bodyContent = message.body?.content || message.bodyPreview || "";
