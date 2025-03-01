@@ -31,7 +31,7 @@ router.get(
     next();
   },
   passport.authenticate("google", {
-    failureRedirect: "email-aichatbot.netlify.app/login",
+    failureRedirect: "https://email-aichatbot.netlify.app/login",
     session: true,
   }),
   (req, res) => {
@@ -46,8 +46,9 @@ router.get(
     );
 
     // Redirect to frontend with token
-    // res.redirect(`http://localhost:5173/auth-callback?token=${token}`);
-    res.redirect(`email-aichatbot.netlify.app/auth-callback?token=${token}`);
+    res.redirect(
+      `https://email-aichatbot.netlify.app/auth-callback?token=${token}`
+    );
   }
 );
 
@@ -72,7 +73,7 @@ router.get(
     next();
   },
   passport.authenticate("microsoft", {
-    failureRedirect: "email-aichatbot.netlify.app/login",
+    failureRedirect: "https://email-aichatbot.netlify.app/login",
     session: true,
   }),
   (req, res) => {
@@ -87,7 +88,9 @@ router.get(
     );
 
     // Redirect to frontend with token
-    res.redirect(`email-aichatbot.netlify.app/auth-callback?token=${token}`);
+    res.redirect(
+      `https://email-aichatbot.netlify.app/auth-callback?token=${token}`
+    );
   }
 );
 
