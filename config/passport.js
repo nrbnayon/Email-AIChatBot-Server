@@ -115,7 +115,7 @@ passport.use(
             microsoftId: profile.id,
             microsoftAccessToken: accessToken,
             microsoftRefreshToken: refreshToken,
-            tokenExpiry: new Date(Date.now() + 3600 * 1000), // Token expires in 1 hour
+            tokenExpiry: new Date(Date.now() + 24 * 3600 * 1000), // Token expires in 1 day
             authProvider: "microsoft",
           });
         }
