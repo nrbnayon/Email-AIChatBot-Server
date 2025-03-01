@@ -40,7 +40,7 @@ app.use(passport.session());
 // Configure CORS properly - this should come AFTER session middleware
 app.use(
   cors({
-    origin: "http://localhost:5173", // Your frontend URL
+    origin: ["http://localhost:5173", "https://email-aichatbot.netlify.app"],
     credentials: true, // Important for cookies/sessions
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
