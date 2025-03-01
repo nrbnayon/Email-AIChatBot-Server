@@ -6,11 +6,12 @@ import dotenv from "dotenv";
 dotenv.config();
 const router = express.Router();
 
-const getFrontendUrl = () => {
-  return process.env.NODE_ENV === "production"
-    ? process.env.FRONTEND_LIVE_URL
-    : process.env.FRONTEND_BASE_URL;
-};
+const getFrontendUrl =
+  process.env?.NODE_ENV === "production"
+    ? process.env?.FRONTEND_LIVE_URL
+    : process.env?.FRONTEND_BASE_URL ||
+      "https://email-ai-chat-bot-server.vercel.app/";
+
 // Google OAuth login route
 router.get(
   "/google",
