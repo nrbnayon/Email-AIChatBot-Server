@@ -94,8 +94,28 @@ router.get(
   }
 );
 
+const authenticateJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (authHeader) {
+    const token = authHeader.split(" ")[1];
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) {
+        console.error("JWT verification error:", err);
+        return res.sendStatus(403);
+      }
+
+      req.user = user;
+      next();
+    });
+  } else {
+    res.sendStatus(401);
+  }
+};
+
 // Get current user
-router.get("/me", (req, res) => {
+router.get("/me", authenticateJWT, (req, res) => {
   console.log("Auth check - isAuthenticated:", req.isAuthenticated());
   console.log("Auth check - user:", req.user ? req.user.email : "No user");
 

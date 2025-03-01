@@ -41,9 +41,10 @@ app.use(passport.session());
 app.use(
   cors({
     origin: ["http://localhost:5173", "https://email-aichatbot.netlify.app"],
-    credentials: true, // Important for cookies/sessions
+    credentials: true, 
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    exposedHeaders: ["Authorization"],
   })
 );
 
