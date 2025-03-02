@@ -81,7 +81,12 @@ router.get(
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: req.user._id, email: req.user.email },
+      {
+        id: req.user._id,
+        email: req.user.email,
+        hasGoogleAuth: !!req.user.googleAccessToken,
+        hasMicrosoftAuth: !!req.user.microsoftAccessToken,
+      },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );

@@ -40,8 +40,7 @@ const AVAILABLE_MODELS = [
   },
 ];
 
-// Middleware to check if user is authenticated
-const isAuthenticated = async (req, res, next) => {
+const isAuthenticated = (req, res, next) => {
   // Check for JWT in Authorization header
   const authHeader = req.headers.authorization;
 
@@ -51,29 +50,48 @@ const isAuthenticated = async (req, res, next) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      // Fetch the complete user object from the database using the ID from the token
-      const user = await User.findById(decoded.id);
+      // Use the decoded ID to find the user
+      User.findById(decoded.id)
+        .then((user) => {
+          if (!user) {
+            return res
+              .status(401)
+              .json({ success: false, message: "User not found" });
+          }
 
-      if (!user) {
-        return res
-          .status(401)
-          .json({ success: false, message: "User not found" });
-      }
-
-      // Set the complete user object with all tokens to req.user
-      req.user = user;
-      return next();
+          // Set the complete user object with all tokens to req.user
+          req.user = user;
+          return next();
+        })
+        .catch((err) => {
+          console.error("Error fetching user from database:", err);
+          return res
+            .status(500)
+            .json({ success: false, message: "Authentication error" });
+        });
     } catch (err) {
       console.log("JWT verification failed:", err.message);
+      // Continue to next authentication method instead of returning error
+
+      // Check if user is authenticated via session as fallback
+      if (req.isAuthenticated()) {
+        return next();
+      } else {
+        return res
+          .status(401)
+          .json({ success: false, message: "Invalid authentication token" });
+      }
+    }
+  } else {
+    // No Bearer token, check session authentication
+    if (req.isAuthenticated()) {
+      return next();
+    } else {
+      return res
+        .status(401)
+        .json({ success: false, message: "Not authenticated" });
     }
   }
-
-  // Check if user is authenticated via session as fallback
-  if (req.isAuthenticated()) {
-    return next();
-  }
-
-  return res.status(401).json({ success: false, message: "Not authenticated" });
 };
 
 // Get available AI models
