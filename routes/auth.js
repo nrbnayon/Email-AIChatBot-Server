@@ -9,9 +9,9 @@ const router = express.Router();
 const getFrontendUrl =
   process.env?.NODE_ENV === "production"
     ? process.env?.FRONTEND_LIVE_URL ||
-      "https://email-ai-chat-bot-server.vercel.app/"
+      "https://email-ai-chat-bot-server.vercel.app"
     : process.env?.FRONTEND_BASE_URL ||
-      "https://email-ai-chat-bot-server.vercel.app/";
+      "https://email-ai-chat-bot-server.vercel.app";
 
 // Google OAuth login route
 router.get(
