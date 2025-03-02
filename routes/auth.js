@@ -102,7 +102,13 @@ router.get("/me", (req, res) => {
   console.log("Auth check - isAuthenticated:", req.isAuthenticated());
   console.log("Auth check - user:", req.user ? req.user.email : "No user");
 
-  if (req.isAuthenticated()) {
+  if (!req.user) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+
+  if (req.user) {
     return res.status(200).json({
       success: true,
       user: {
