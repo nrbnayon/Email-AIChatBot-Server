@@ -2,7 +2,7 @@ import express from "express";
 import passport from "passport";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-
+import User from "../models/User.js";
 dotenv.config();
 const router = express.Router();
 

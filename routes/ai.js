@@ -2,7 +2,7 @@ import express from "express";
 import { Groq } from "groq-sdk";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import User from "../models/User";
+import User from "../models/User.js";
 
 dotenv.config();
 const router = express.Router();

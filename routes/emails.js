@@ -4,7 +4,7 @@ import { google } from "googleapis";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
 import jwt from "jsonwebtoken";
-import User from "../models/User";
+import User from "../models/User.js";
 
 dotenv.config();
 const router = express.Router();
@@ -94,8 +94,8 @@ router.get("/gmail", isAuthenticated, async (req, res) => {
 
     // Set credentials
     oauth2Client.setCredentials({
-      access_token: req.user.googleAccessToken,
-      refresh_token: req.user.googleRefreshToken,
+      access_token: user.googleAccessToken,
+      refresh_token: user.googleRefreshToken,
     });
 
     // Create Gmail API client
