@@ -2,7 +2,6 @@ import express from "express";
 import passport from "passport";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import User from "../models/User";
 
 dotenv.config();
 const router = express.Router();
@@ -52,7 +51,7 @@ router.get(
     const token = jwt.sign(
       { id: req.user._id, email: req.user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "1d" }
     );
 
     // Redirect to frontend with token
@@ -89,7 +88,7 @@ router.get(
     const token = jwt.sign(
       { id: req.user._id, email: req.user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "1d" }
     );
 
     // Redirect to frontend with token
@@ -98,35 +97,24 @@ router.get(
 );
 
 // Get current user
-router.get("/me", async (req, res) => {
+router.get("/me", (req, res) => {
   console.log("Auth check - isAuthenticated:", req.isAuthenticated());
+  console.log("Auth check - user:", req.user ? req.user.email : "No user");
 
-  // Check if token exists in Authorization header
-  const token = req.headers.authorization?.split(" ")[1];
-
-  if (!token) {
+  if (!req.user) {
     return res
       .status(401)
       .json({ success: false, message: "Not authenticated" });
   }
 
-  try {
-    // Verify JWT
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res
-        .status(401)
-        .json({ success: false, message: "User not found" });
-    }
-
+  if (req.user) {
     return res.status(200).json({
       success: true,
       user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
+        id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        authProvider: req.user.authProvider,
         microsoftAccessToken: req.user?.microsoftAccessToken
           ? req.user.microsoftAccessToken.slice(0, 10)
           : "",
@@ -135,9 +123,8 @@ router.get("/me", async (req, res) => {
           : "",
       },
     });
-  } catch (error) {
-    return res.status(401).json({ success: false, message: "Invalid token" });
   }
+  return res.status(401).json({ success: false, message: "Not authenticated" });
 });
 
 // Logout route
