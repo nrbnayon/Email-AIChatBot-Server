@@ -70,8 +70,6 @@ const isAuthenticated = (req, res, next) => {
             .json({ success: false, message: "Authentication error" });
         });
     } catch (err) {
-      console.log("JWT verification failed:", err.message);
-      // Continue to next authentication method instead of returning error
 
       // Check if user is authenticated via session as fallback
       if (req.isAuthenticated()) {
@@ -129,11 +127,6 @@ router.post("/query", isAuthenticated, async (req, res) => {
         message: "Emails data must be an array",
       });
     }
-
-    // Allow empty email arrays - the user might have no emails but still want to ask questions
-    console.log(
-      `Processing AI query: "${query}" with ${emails.length} emails using model: ${model}`
-    );
 
     // Prepare email data for AI processing - only include essential information and limit size
     const emailsData = emails.map((email) => ({
@@ -193,7 +186,6 @@ router.post("/query", isAuthenticated, async (req, res) => {
     });
 
     const aiResponse = completion.choices[0].message.content;
-    console.log(`AI response generated successfully using model: ${model}`);
 
     return res.status(200).json({
       success: true,

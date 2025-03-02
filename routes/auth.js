@@ -22,11 +22,8 @@ const authenticateJWT = (req, res, next) => {
 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
-        console.log("JWT verification failed:", err.message);
-        // Continue to next authentication method instead of returning error
+        console.error("JWT verification failed:", err.message);
       } else {
-        // Find user by ID from decoded token and add to req
-        console.log("JWT verification successful for user ID:", decoded.id);
         req.user = decoded;
         return next();
       }
@@ -47,8 +44,6 @@ const authenticateJWT = (req, res, next) => {
 router.get(
   "/google",
   (req, res, next) => {
-    console.log("Starting Google OAuth flow");
-    console.log("Redirect URI:", process.env.GOOGLE_REDIRECT_URI);
     next();
   },
   passport.authenticate("google", {
@@ -64,7 +59,6 @@ router.get(
 router.get(
   "/google/callback",
   (req, res, next) => {
-    console.log("Google callback received");
     next();
   },
   passport.authenticate("google", {
@@ -72,13 +66,6 @@ router.get(
     session: true,
   }),
   (req, res) => {
-    console.log("Google authentication successful");
-    console.log("User:", req.user ? req.user.email : "No user");
-    console.log(
-      "User token:",
-      req.user ? req.user.microsoftAccessToken : "No user"
-    );
-
     // Generate JWT token
     const token = jwt.sign(
       {
@@ -100,8 +87,6 @@ router.get(
 router.get(
   "/microsoft",
   (req, res, next) => {
-    console.log("Starting Microsoft OAuth flow");
-    console.log("Redirect URI:", process.env.MICROSOFT_REDIRECT_URI);
     next();
   },
   passport.authenticate("microsoft", {
@@ -113,7 +98,6 @@ router.get(
 router.get(
   "/microsoft/callback",
   (req, res, next) => {
-    console.log("Microsoft callback received");
     next();
   },
   passport.authenticate("microsoft", {
@@ -135,8 +119,6 @@ router.get(
 
 // Get current user - now uses JWT authentication middleware
 router.get("/me", authenticateJWT, (req, res) => {
-  console.log("Auth check - user:", req.user ? req.user.email : "No user");
-
   // If we get here, the user is authenticated either by JWT or session
   return res.status(200).json({
     success: true,

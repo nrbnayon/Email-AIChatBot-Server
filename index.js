@@ -72,11 +72,6 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Debug middleware for authentication
 app.use((req, res, next) => {
-  console.log(`Request: ${req.method} ${req.path}`);
-  console.log(`Authenticated: ${req.isAuthenticated()}`);
-  console.log(
-    `Auth Header: ${req.headers.authorization ? "Present" : "Missing"}`
-  );
   next();
 });
 
@@ -93,12 +88,8 @@ app.use("/api/ai", aiRoutes);
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
-    console.log("Connected to MongoDB Atlas");
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
-      console.log(
-        `Google OAuth callback URL: ${process.env.GOOGLE_REDIRECT_URI}`
-      );
     });
   })
   .catch((error) => {

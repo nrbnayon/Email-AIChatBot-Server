@@ -39,9 +39,6 @@ const isAuthenticated = (req, res, next) => {
             .json({ success: false, message: "Authentication error" });
         });
     } catch (err) {
-      console.log("JWT verification failed:", err.message);
-      // Continue to next authentication method instead of returning error
-
       // Check if user is authenticated via session as fallback
       if (req.isAuthenticated()) {
         return next();
@@ -66,8 +63,6 @@ const isAuthenticated = (req, res, next) => {
 // Get Gmail emails from the last 2 months
 router.get("/gmail", isAuthenticated, async (req, res) => {
   try {
-    console.log("Fetching Gmail emails");
-
     // Check if user has Google authentication
     if (req.user.hasGoogleAuth === false) {
       return res.status(400).json({
@@ -110,19 +105,14 @@ router.get("/gmail", isAuthenticated, async (req, res) => {
     const month = String(twoMonthsAgo.getMonth() + 1).padStart(2, "0");
     const day = String(twoMonthsAgo.getDate()).padStart(2, "0");
     const formattedDate = `${year}/${month}/${day}`;
-
     const query = `after:${formattedDate}`;
-
-    console.log("Fetching messages with query:", query);
 
     // Get list of messages
     const { data } = await gmail.users.messages.list({
       userId: "me",
       q: query,
-      maxResults: 100, // Limit to 100 emails for performance
+      maxResults: 150,
     });
-
-    console.log(`Found ${data.messages ? data.messages.length : 0} messages`);
 
     if (!data.messages || data.messages.length === 0) {
       return res.status(200).json({
@@ -210,15 +200,8 @@ router.get("/gmail", isAuthenticated, async (req, res) => {
               }
             }
           } else if (payload.body && payload.body.data) {
-            // Handle single part message
             body = decodeBase64(payload.body.data);
           }
-
-          // console.log(
-          //   `Successfully processed email: "${
-          //     headers.subject || "(No Subject)"
-          //   }" from ${headers.from || "unknown"}`
-          // );
 
           return {
             id: message.id,
@@ -246,8 +229,6 @@ router.get("/gmail", isAuthenticated, async (req, res) => {
       })
     );
 
-    console.log(`Successfully processed ${emails.length} emails`);
-
     return res.status(200).json({
       success: true,
       emails,
@@ -265,8 +246,6 @@ router.get("/gmail", isAuthenticated, async (req, res) => {
 // Get Outlook emails from the last 2 months
 router.get("/outlook", isAuthenticated, async (req, res) => {
   try {
-    console.log("Fetching Outlook emails");
-
     // Check if user has Microsoft authentication
     if (!req.user.microsoftAccessToken) {
       return res.status(400).json({
@@ -283,9 +262,6 @@ router.get("/outlook", isAuthenticated, async (req, res) => {
     // Microsoft Graph API endpoint for emails
     const endpoint = `https://graph.microsoft.com/v1.0/me/messages?$filter=receivedDateTime ge ${formattedDate}&$top=100&$select=id,subject,bodyPreview,receivedDateTime,from,toRecipients,body`;
 
-    console.log("Fetching messages from Microsoft Graph API");
-    console.log("Using filter date:", formattedDate);
-
     // Fetch emails from Microsoft Graph API
     const response = await fetch(endpoint, {
       headers: {
@@ -301,10 +277,7 @@ router.get("/outlook", isAuthenticated, async (req, res) => {
         `Microsoft API error: ${errorData.error?.message || "Unknown error"}`
       );
     }
-
     const data = await response.json();
-    console.log(`Found ${data.value?.length || 0} messages from Outlook`);
-
     if (!data.value || data.value.length === 0) {
       return res.status(200).json({
         success: true,
@@ -355,8 +328,6 @@ router.get("/outlook", isAuthenticated, async (req, res) => {
         };
       }
     });
-
-    console.log(`Successfully processed ${emails.length} Outlook emails`);
 
     return res.status(200).json({
       success: true,

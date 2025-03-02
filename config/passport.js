@@ -36,22 +36,15 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        console.log("Google OAuth callback received");
-        console.log("Profile:", profile.displayName, profile.emails[0].value);
-        console.log("Callback URL:", process.env.GOOGLE_REDIRECT_URI);
-
-        // Check if user already exists
         let user = await User.findOne({ email: profile.emails[0].value });
 
         if (user) {
-          console.log("Existing user found, updating tokens");
           // Update tokens
           user.googleId = profile.id;
           user.googleAccessToken = accessToken;
           user.googleRefreshToken = refreshToken;
           await user.save();
         } else {
-          console.log("Creating new user");
           // Create new user
           user = await User.create({
             email: profile.emails[0].value,
@@ -84,14 +77,6 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        console.log("Microsoft OAuth callback received");
-        console.log(
-          "Profile:",
-          profile.displayName,
-          profile._json.mail || profile._json.userPrincipalName
-        );
-        console.log("Callback URL:", process.env.MICROSOFT_REDIRECT_URI);
-
         // Get email from profile
         const email = profile._json.mail || profile._json.userPrincipalName;
 
@@ -99,7 +84,6 @@ passport.use(
         let user = await User.findOne({ email });
 
         if (user) {
-          console.log("Existing user found, updating tokens");
           // Update tokens
           user.microsoftId = profile.id;
           user.microsoftAccessToken = accessToken;
@@ -107,7 +91,6 @@ passport.use(
           user.tokenExpiry = new Date(Date.now() + 24 * 3600 * 1000); // Token expires in 1 day
           await user.save();
         } else {
-          console.log("Creating new user");
           // Create new user
           user = await User.create({
             email,
