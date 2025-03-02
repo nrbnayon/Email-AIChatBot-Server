@@ -45,9 +45,8 @@ app.use(
     origin: [
       "http://localhost:5173",
       "https://email-aichatbot.netlify.app",
-      "https://email-aichatbot.netlify.app",
+      "https://email-ai-chat-bot-server.vercel.app",
     ],
-    // origin: "https://email-aichatbot.netlify.app",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
