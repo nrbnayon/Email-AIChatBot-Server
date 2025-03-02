@@ -42,7 +42,10 @@ app.use(passport.session());
 // Configure CORS properly - this should come AFTER session middleware
 app.use(
   cors({
-    origin: "https://email-ai-chat-bot-server.vercel.app",
+    origin: [
+      "https://email-aichatbot.netlify.app",
+      "https://email-ai-chat-bot-server.vercel.app",
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
