@@ -3,11 +3,13 @@ import express from "express";
 import { google } from "googleapis";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 const router = express.Router();
 
 // Middleware to check if user is authenticated
+// Improve the isAuthenticated middleware
 const isAuthenticated = (req, res, next) => {
   // Check for JWT in Authorization header
   const authHeader = req.headers.authorization;
@@ -15,18 +17,15 @@ const isAuthenticated = (req, res, next) => {
   if (authHeader && authHeader.startsWith("Bearer ")) {
     const token = authHeader.split(" ")[1];
 
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) {
-        console.log("JWT verification failed:", err.message);
-      } else {
-        console.log("JWT verification successful for user ID:", decoded.id);
-        req.user = decoded;
-        return next();
-      }
-    });
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded;
+      return next();
+    } catch (err) {
+      console.log("JWT verification failed:", err.message);
+    }
   }
 
-  // Fallback to session authentication if JWT auth failed
   if (req.isAuthenticated()) {
     return next();
   }
