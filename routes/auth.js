@@ -43,6 +43,10 @@ router.get(
   (req, res) => {
     console.log("Google authentication successful");
     console.log("User:", req.user ? req.user.email : "No user");
+    console.log(
+      "User token:",
+      req.user ? req.user.microsoftAccessToken : "No user"
+    );
 
     // Generate JWT token
     const token = jwt.sign(
@@ -81,9 +85,6 @@ router.get(
     session: true,
   }),
   (req, res) => {
-    console.log("Microsoft authentication successful");
-    console.log("User:", req.user ? req.user.email : "No user");
-
     // Generate JWT token
     const token = jwt.sign(
       { id: req.user._id, email: req.user.email },
@@ -109,6 +110,12 @@ router.get("/me", (req, res) => {
         name: req.user.name,
         email: req.user.email,
         authProvider: req.user.authProvider,
+        microsoftAccessToken: req.user?.microsoftAccessToken
+          ? req.user.microsoftAccessToken.slice(0, 10)
+          : "",
+        googleAccessToken: req.user.googleAccessToken
+          ? req.user.googleAccessToken.slice(0, 10)
+          : "",
       },
     });
   }
