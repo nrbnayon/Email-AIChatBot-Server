@@ -76,7 +76,7 @@ router.get("/models", isAuthenticated, (req, res) => {
 // Process user query with AI
 router.post("/query", isAuthenticated, async (req, res) => {
   try {
-    const { query, emails, model = "llama3-70b-8192" } = req.body;
+    const { query, emails, model = "llama-3.1-8b-instant" } = req.body;
 
     if (!query) {
       return res.status(400).json({
