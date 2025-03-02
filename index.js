@@ -1,4 +1,3 @@
-// index.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -16,6 +15,13 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+
+// Define allowed origins
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://email-aichatbot.netlify.app",
+  "https://email-ai-chat-bot-server.vercel.app",
+];
 
 // Middleware - update order for better request handling
 app.use(cookieParser());
@@ -42,11 +48,17 @@ app.use(passport.session());
 // Configure CORS properly - this should come AFTER session middleware
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://email-aichatbot.netlify.app",
-      "https://email-ai-chat-bot-server.vercel.app",
-    ],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg =
+          "The CORS policy for this site does not allow access from the specified Origin.";
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -62,6 +74,9 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use((req, res, next) => {
   console.log(`Request: ${req.method} ${req.path}`);
   console.log(`Authenticated: ${req.isAuthenticated()}`);
+  console.log(
+    `Auth Header: ${req.headers.authorization ? "Present" : "Missing"}`
+  );
   next();
 });
 

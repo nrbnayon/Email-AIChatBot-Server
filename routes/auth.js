@@ -13,6 +13,36 @@ const getFrontendUrl =
     : process.env?.FRONTEND_BASE_URL ||
       "https://email-ai-chat-bot-server.vercel.app";
 
+// JWT Authentication Middleware
+const authenticateJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        console.log("JWT verification failed:", err.message);
+        // Continue to next authentication method instead of returning error
+      } else {
+        // Find user by ID from decoded token and add to req
+        console.log("JWT verification successful for user ID:", decoded.id);
+        req.user = decoded;
+        return next();
+      }
+    });
+  }
+
+  // Check if user is authenticated via session as fallback
+  if (req.isAuthenticated()) {
+    return next();
+  } else {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated" });
+  }
+};
+
 // Google OAuth login route
 router.get(
   "/google",
@@ -98,29 +128,26 @@ router.get(
   }
 );
 
-// Get current user
-router.get("/me", (req, res) => {
-  console.log("Auth check - isAuthenticated:", req.isAuthenticated());
+// Get current user - now uses JWT authentication middleware
+router.get("/me", authenticateJWT, (req, res) => {
   console.log("Auth check - user:", req.user ? req.user.email : "No user");
 
-  if (req.isAuthenticated()) {
-    return res.status(200).json({
-      success: true,
-      user: {
-        id: req.user._id,
-        name: req.user.name,
-        email: req.user.email,
-        authProvider: req.user.authProvider,
-        microsoftAccessToken: req.user?.microsoftAccessToken
-          ? req.user.microsoftAccessToken.slice(0, 10)
-          : "",
-        googleAccessToken: req.user.googleAccessToken
-          ? req.user.googleAccessToken.slice(0, 10)
-          : "",
-      },
-    });
-  }
-  return res.status(401).json({ success: false, message: "Not authenticated" });
+  // If we get here, the user is authenticated either by JWT or session
+  return res.status(200).json({
+    success: true,
+    user: {
+      id: req.user._id || req.user.id,
+      name: req.user.name,
+      email: req.user.email,
+      authProvider: req.user.authProvider,
+      microsoftAccessToken: req.user?.microsoftAccessToken
+        ? req.user.microsoftAccessToken.slice(0, 10)
+        : "",
+      googleAccessToken: req.user.googleAccessToken
+        ? req.user.googleAccessToken.slice(0, 10)
+        : "",
+    },
+  });
 });
 
 // Logout route
