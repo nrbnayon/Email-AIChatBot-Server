@@ -3,12 +3,11 @@ import express from "express";
 import { google } from "googleapis";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
-import jwt from "jsonwebtoken";
 
 dotenv.config();
 const router = express.Router();
 
-// Updated middleware to check if user is authenticated
+// Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
   // Check for JWT in Authorization header
   const authHeader = req.headers.authorization;
@@ -39,7 +38,6 @@ const isAuthenticated = (req, res, next) => {
 router.get("/gmail", isAuthenticated, async (req, res) => {
   try {
     console.log("Fetching Gmail emails");
-    console.log("User info:", req.user);
 
     // Check if user has Google authentication
     if (!req.user.googleAccessToken) {
@@ -49,8 +47,173 @@ router.get("/gmail", isAuthenticated, async (req, res) => {
       });
     }
 
-    // Rest of your existing code...
-    // ...
+    // Create OAuth2 client
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+
+    // Set credentials
+    oauth2Client.setCredentials({
+      access_token: req.user.googleAccessToken,
+      refresh_token: req.user.googleRefreshToken,
+    });
+
+    // Create Gmail API client
+    const gmail = google.gmail({ version: "v1", auth: oauth2Client });
+
+    // Calculate date 2 months ago in the proper format for Gmail API
+    const twoMonthsAgo = new Date();
+    twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+
+    // Format the date for Gmail query (YYYY/MM/DD)
+    const year = twoMonthsAgo.getFullYear();
+    const month = String(twoMonthsAgo.getMonth() + 1).padStart(2, "0");
+    const day = String(twoMonthsAgo.getDate()).padStart(2, "0");
+    const formattedDate = `${year}/${month}/${day}`;
+
+    const query = `after:${formattedDate}`;
+
+    console.log("Fetching messages with query:", query);
+
+    // Get list of messages
+    const { data } = await gmail.users.messages.list({
+      userId: "me",
+      q: query,
+      maxResults: 100, // Limit to 100 emails for performance
+    });
+
+    console.log(`Found ${data.messages ? data.messages.length : 0} messages`);
+
+    if (!data.messages || data.messages.length === 0) {
+      return res.status(200).json({
+        success: true,
+        emails: [],
+      });
+    }
+
+    // Get details for each message with proper error handling
+    const emails = await Promise.all(
+      data.messages.map(async (message) => {
+        try {
+          const response = await gmail.users.messages.get({
+            userId: "me",
+            id: message.id,
+            format: "full",
+          });
+
+          const { payload, snippet, internalDate } = response.data;
+
+          // Extract headers
+          const headers = {};
+          payload.headers.forEach((header) => {
+            headers[header.name.toLowerCase()] = header.value;
+          });
+
+          // Extract body content with better error handling
+          let body = "";
+
+          // Function to decode base64 content safely
+          const decodeBase64 = (data) => {
+            try {
+              if (!data) return "";
+              return Buffer.from(data, "base64").toString("utf-8");
+            } catch (error) {
+              console.log(
+                `Error decoding base64 for message ${message.id}:`,
+                error
+              );
+              return "";
+            }
+          };
+
+          // Handle multipart messages
+          if (payload.parts && payload.parts.length > 0) {
+            // Try to find plain text first, then HTML
+            const textPart = payload.parts.find(
+              (part) => part.mimeType === "text/plain"
+            );
+            const htmlPart = payload.parts.find(
+              (part) => part.mimeType === "text/html"
+            );
+
+            if (textPart && textPart.body && textPart.body.data) {
+              body = decodeBase64(textPart.body.data);
+            } else if (htmlPart && htmlPart.body && htmlPart.body.data) {
+              body = decodeBase64(htmlPart.body.data);
+            } else {
+              // Try nested parts if available
+              for (const part of payload.parts) {
+                if (part.parts) {
+                  const nestedTextPart = part.parts.find(
+                    (p) => p.mimeType === "text/plain"
+                  );
+                  const nestedHtmlPart = part.parts.find(
+                    (p) => p.mimeType === "text/html"
+                  );
+
+                  if (
+                    nestedTextPart &&
+                    nestedTextPart.body &&
+                    nestedTextPart.body.data
+                  ) {
+                    body = decodeBase64(nestedTextPart.body.data);
+                    break;
+                  } else if (
+                    nestedHtmlPart &&
+                    nestedHtmlPart.body &&
+                    nestedHtmlPart.body.data
+                  ) {
+                    body = decodeBase64(nestedHtmlPart.body.data);
+                    break;
+                  }
+                }
+              }
+            }
+          } else if (payload.body && payload.body.data) {
+            // Handle single part message
+            body = decodeBase64(payload.body.data);
+          }
+
+          // console.log(
+          //   `Successfully processed email: "${
+          //     headers.subject || "(No Subject)"
+          //   }" from ${headers.from || "unknown"}`
+          // );
+
+          return {
+            id: message.id,
+            threadId: response.data.threadId,
+            date: new Date(parseInt(internalDate)).toISOString(),
+            from: headers.from || "",
+            to: headers.to || "",
+            subject: headers.subject || "(No Subject)",
+            snippet,
+            body: body.substring(0, 2000), // Limit body size to prevent payload issues
+          };
+        } catch (error) {
+          console.error(`Error processing message ${message.id}:`, error);
+          // Return minimal information for failed messages
+          return {
+            id: message.id,
+            date: new Date().toISOString(),
+            from: "Error retrieving email",
+            to: "",
+            subject: "Error retrieving email",
+            snippet: "There was an error retrieving this email.",
+            body: "",
+          };
+        }
+      })
+    );
+
+    console.log(`Successfully processed ${emails.length} emails`);
+
+    return res.status(200).json({
+      success: true,
+      emails,
+    });
   } catch (error) {
     console.error("Error fetching Gmail emails:", error);
     return res.status(500).json({
