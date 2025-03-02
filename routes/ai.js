@@ -36,25 +36,32 @@ const AVAILABLE_MODELS = [
     developer: "Meta",
     contextWindow: "128K tokens",
   },
-  // {
-  //   id: "mixtral-8x7b-32768",
-  //   name: "Mixtral 8x7B",
-  //   developer: "Mistral",
-  //   contextWindow: "32K tokens",
-  // },
-  // {
-  //   id: "gemma2-9b-it",
-  //   name: "Gemma 2 9B",
-  //   developer: "Google",
-  //   contextWindow: "8K tokens",
-  // },
 ];
 
 // Middleware to check if user is authenticated
 const isAuthenticated = (req, res, next) => {
-  if (req?.user || req.isAuthenticated()) {
+  // Check for JWT in Authorization header
+  const authHeader = req.headers.authorization;
+
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        console.log("JWT verification failed:", err.message);
+      } else {
+        console.log("JWT verification successful for user ID:", decoded.id);
+        req.user = decoded;
+        return next();
+      }
+    });
+  }
+
+  // Fallback to session authentication if JWT auth failed
+  if (req.isAuthenticated()) {
     return next();
   }
+
   return res.status(401).json({ success: false, message: "Not authenticated" });
 };
 
