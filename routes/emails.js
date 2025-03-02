@@ -157,11 +157,11 @@ router.get("/gmail", isAuthenticated, async (req, res) => {
             body = decodeBase64(payload.body.data);
           }
 
-          console.log(
-            `Successfully processed email: "${
-              headers.subject || "(No Subject)"
-            }" from ${headers.from || "unknown"}`
-          );
+          // console.log(
+          //   `Successfully processed email: "${
+          //     headers.subject || "(No Subject)"
+          //   }" from ${headers.from || "unknown"}`
+          // );
 
           return {
             id: message.id,
