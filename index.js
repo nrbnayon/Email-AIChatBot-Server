@@ -27,10 +27,10 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // Ensures cookies work on HTTPS
-      httpOnly: true, // Protects against XSS
-      sameSite: "None", // Ensures cross-origin cookies work
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      secure: true,
+      httpOnly: true,
+      sameSite: "None",
+      maxAge: 24 * 60 * 60 * 1000,
     },
   })
 );
@@ -42,11 +42,7 @@ app.use(passport.session());
 // Configure CORS properly - this should come AFTER session middleware
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://email-ai-chat-bot-server.vercel.app",
-      "https://email-aichatbot.netlify.app",
-    ],
+    origin: "https://email-ai-chat-bot-server.vercel.app",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
