@@ -27,10 +27,10 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       httpOnly: true,
-      sameSite: "Lax",
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   })
 );
@@ -43,14 +43,15 @@ app.use(passport.session());
 app.use(
   cors({
     origin: [
-      "https://email-aichatbot.netlify.app",
-      "https://email-ai-chat-bot-server.vercel.app",
-      "http://localhost:3000",
       "http://localhost:5173",
+      "https://email-aichatbot.netlify.app",
+      "https://email-aichatbot.netlify.app",
     ],
+    // origin: "https://email-aichatbot.netlify.app",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    exposedHeaders: ["Authorization"],
   })
 );
 
