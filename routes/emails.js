@@ -313,7 +313,7 @@ router.get("/outlook", isAuthenticated, async (req, res) => {
           to: recipients,
           subject: message.subject || "(No Subject)",
           snippet: message.bodyPreview || "",
-          body: bodyContent.substring(0, 2000), // Limit body size to prevent payload issues
+          body: bodyContent.substring(0, 2000), 
         };
       } catch (error) {
         console.error(`Error processing Outlook message ${message.id}:`, error);

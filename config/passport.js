@@ -1,3 +1,4 @@
+// config\passport.js
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as MicrosoftStrategy } from "passport-microsoft";
@@ -77,18 +78,15 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        // Get email from profile
         const email = profile._json.mail || profile._json.userPrincipalName;
 
-        // Check if user already exists
         let user = await User.findOne({ email });
 
         if (user) {
-          // Update tokens
           user.microsoftId = profile.id;
           user.microsoftAccessToken = accessToken;
           user.microsoftRefreshToken = refreshToken;
-          user.tokenExpiry = new Date(Date.now() + 24 * 3600 * 1000); // Token expires in 1 day
+          user.tokenExpiry = new Date(Date.now() + 24 * 3600 * 1000); 
           await user.save();
         } else {
           // Create new user
@@ -98,7 +96,7 @@ passport.use(
             microsoftId: profile.id,
             microsoftAccessToken: accessToken,
             microsoftRefreshToken: refreshToken,
-            tokenExpiry: new Date(Date.now() + 24 * 3600 * 1000), // Token expires in 1 day
+            tokenExpiry: new Date(Date.now() + 24 * 3600 * 1000),
             authProvider: "microsoft",
           });
         }
